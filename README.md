@@ -7,15 +7,16 @@ A minimal authentication REST API using **Spring Boot 3**, **Spring Security**, 
 ## 📸 Screenshots
 
 ### 🔐 Login / Register Dashboard
-![Dashboard Screenshot](./screenshots/dashboard.png)
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/bee9f2b6-7d7a-4c35-8ed9-2ef1dae5948f" />
 
 ### 📄 User Login via Postman
-![Postman Login](./screenshots/postman-login.png)
 
-### 🟢 Token Validation
-![Token Validation](./screenshots/token-validation.png)
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/c3ae7884-1575-488d-bdd6-494511baa890" />
 
+
+### 🟢 Login via Swagger UI
 ---
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/a3048702-5ec8-4273-b2f2-db2d2a5a77ff" />
 
 ## 🚀 Features
 - User registration  
@@ -37,7 +38,7 @@ A minimal authentication REST API using **Spring Boot 3**, **Spring Security**, 
 ---
 
 ## 🛠 Technologies
-- Java 17+  
+- Java 21
 - Spring Boot 3  
 - Spring Security  
 - JSON Web Token (JWT)  
