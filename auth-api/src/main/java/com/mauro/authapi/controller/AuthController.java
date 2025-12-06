@@ -19,54 +19,50 @@ public class AuthController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
+    // LOGIN
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
 
-        User user = userService.authenticate(
-                loginDTO.getUsername(),
-                loginDTO.getPassword()
-        );
+        User user = userService.authenticate(loginDTO.getUsername(), loginDTO.getPassword());
 
-        // JwtUtil geralmente gera token usando apenas o username
         String token = jwtUtil.generateToken(user.getUsername());
 
-        LoginResponseDTO response = new LoginResponseDTO(
+        return ResponseEntity.ok(new LoginResponseDTO(
                 user.getId(),
                 user.getUsername(),
                 token
-        );
-
-        return ResponseEntity.ok(response);
+        ));
     }
 
+    // REGISTRO
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody CreateUserDTO dto) {
         User created = userService.register(dto);
         return ResponseEntity.ok(created);
     }
 
+    // TESTE SEM TOKEN
     @GetMapping("/teste")
     public String teste() {
-        return "Acesso liberado";
+        return "Acesso liberado (rota pública)";
     }
 
+    // VALIDAR TOKEN
     @GetMapping("/validate")
     public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String authHeader) {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.badRequest().body("Token ausente ou inválido.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token ausente ou inválido.");
         }
 
         String token = authHeader.substring(7);
 
-        boolean isValid = jwtUtil.validateToken(token);
+        try {
+            String username = jwtUtil.extractUsername(token);
+            return ResponseEntity.ok("Token válido para usuário: " + username);
 
-        if (!isValid) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido.");
         }
-
-        String username = jwtUtil.extractUsername(token);
-
-        return ResponseEntity.ok("Token válido para usuário: " + username);
     }
 }

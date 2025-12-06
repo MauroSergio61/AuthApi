@@ -50,12 +50,21 @@ public class SecurityConfig {
         );
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers(
+                        "/auth/**",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**"
+                ).permitAll()
+
+                // tudo que começar com /api/ deve exigir token
+                .requestMatchers("/api/**").authenticated()
+
+                // qualquer outra coisa -> autenticado
                 .anyRequest().authenticated()
         );
 
         http.authenticationProvider(authenticationProvider());
+
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
