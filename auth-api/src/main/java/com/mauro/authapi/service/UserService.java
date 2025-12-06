@@ -22,22 +22,23 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder; // vem do SecurityConfig
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // usado automaticamente pelo Spring Security no /login
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
     }
 
+    /**
+     * Método para registrar um novo usuário
+     */
     public User register(CreateUserDTO dto) {
 
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new RuntimeException("Username já existe");
         }
 
-        // pega ROLE_USER automaticamente (criado pelo DataInitializer)
         Role defaultRole = roleRepository.findByName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new RuntimeException("Role USER não encontrada"));
 
@@ -47,5 +48,20 @@ public class UserService implements UserDetailsService {
         user.setRoles(Collections.singleton(defaultRole));
 
         return userRepository.save(user);
+    }
+
+    /**
+    // * Métod paraautenticação(usadono/auth/login)
+     */
+    public User authenticate(String username, String rawPassword) {
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new RuntimeException("Senha incorreta");
+        }
+
+        return user;
     }
 }

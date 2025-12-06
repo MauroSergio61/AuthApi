@@ -38,12 +38,24 @@ public class JwtUtil {
     }
 
     // =============================
-    // Valida token + username
+    // Valida token com UserDetails
     // =============================
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    // =============================
+    // Validação simples (sem UserDetails)
+    // usada no /auth/validate
+    // =============================
+    public boolean validateToken(String token) {
+        try {
+            extractAllClaims(token); // se falhar, lança exceção
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // =============================

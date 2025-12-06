@@ -2,14 +2,13 @@ package com.mauro.authapi.controller;
 
 import com.mauro.authapi.dto.CreateUserDTO;
 import com.mauro.authapi.dto.LoginDTO;
+import com.mauro.authapi.dto.LoginResponseDTO;
 import com.mauro.authapi.model.User;
 import com.mauro.authapi.security.JwtUtil;
 import com.mauro.authapi.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,25 +16,27 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginDTO loginDTO) {
 
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginDTO.getUsername(),
-                        loginDTO.getPassword()
-                )
+        User user = userService.authenticate(
+                loginDTO.getUsername(),
+                loginDTO.getPassword()
         );
 
-        User user = (User) auth.getPrincipal();
-
+        // JwtUtil geralmente gera token usando apenas o username
         String token = jwtUtil.generateToken(user.getUsername());
 
-        return ResponseEntity.ok().body(token);
+        LoginResponseDTO response = new LoginResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                token
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
@@ -43,10 +44,29 @@ public class AuthController {
         User created = userService.register(dto);
         return ResponseEntity.ok(created);
     }
+
     @GetMapping("/teste")
     public String teste() {
         return "Acesso liberado";
     }
 
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String authHeader) {
 
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Token ausente ou inválido.");
+        }
+
+        String token = authHeader.substring(7);
+
+        boolean isValid = jwtUtil.validateToken(token);
+
+        if (!isValid) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido.");
+        }
+
+        String username = jwtUtil.extractUsername(token);
+
+        return ResponseEntity.ok("Token válido para usuário: " + username);
+    }
 }
